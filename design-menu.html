@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Design Matrix | Selection Menu</title>
+    <style>
+        /* ------------------------------------------------------------
+           CORE RESET & VARIABLES
+           ------------------------------------------------------------ */
+        :root {
+            /* Default State (Neutral) */
+            --bg-body: #0f0f0f;
+            --bg-nav: #1a1a1a;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --accent: #3b82f6;
+            --border: 1px solid #333;
+            --font-display: 'Inter', system-ui, sans-serif;
+            --font-body: 'Inter', system-ui, sans-serif;
+            --radius: 0px;
+            --shadow: none;
+            --transition-speed: 0.3s;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            height: 100vh;
+            overflow: hidden; /* App-like feel */
+            transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+        }
+
+        /* ------------------------------------------------------------
+           LAYOUT ARCHITECTURE
+           ------------------------------------------------------------ */
+        .design-menu {
+            display: flex;
+            height: 100%;
+            width: 100%;
+        }
+
+        /* NAVIGATION RAIL */
+        .nav-rail {
+            width: 320px;
+            background-color: var(--bg-nav);
+            border-right: var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 40px 30px;
+            z-index: 10;
+            transition: background-color 0.4s ease, border-color 0.4s ease;
+            overflow-y: auto;
+        }
+
+        .menu-header {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: var(--border);
+        }
+
+        .menu-header h1 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+        }
+
+        .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        /* MENU ITEMS (The Buttons) */
+        .menu-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            border: var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            text-align: left;
+            font-family: var(--font-body);
+            font-size: 1rem;
+        }
+
+        .menu-item .arrow {
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.2s ease;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            color: var(--text-main);
+            background: var(--bg-body);
+            transform: translateX(5px);
+            box-shadow: var(--shadow);
+        }
+
+        .menu-item:hover .arrow, .menu-item.active .arrow {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* PREVIEW STAGE (The "Wow" Factor) */
+        .preview-stage {
+            flex: 1;
+            position: relative;
+            padding: 60px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* BACKGROUND ELEMENTS (Abstract decoration) */
+        .bg-element {
+            position: absolute;
+            z-index: 0;
+            transition: all 0.5s ease;
+        }
+
+        /* CONTENT CARD IN STAGE */
+        .preview-card {
+            z-index: 2;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.6s forwards;
+            padding: 60px;
+            border: var(--border);
+            background: rgba(255,255,255,0.05); /* Default fallback */
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .preview-title {
+            font-family: var(--font-display);
+            font-size: 5rem;
+            line-height: 0.9;
+            margin-bottom: 20px;
+            letter-spacing: -0.03em;
+        }
+
+        .preview-desc {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+
+        .preview-cta {
+            display: inline-block;
+            padding: 16px 40px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-decoration: none;
+            background: var(--text-main);
+            color: var(--bg-body);
+            border-radius: var(--radius);
+            border: var(--border);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .preview-cta:hover {
+            transform: scale(1.05);
+        }
+
+        /* ------------------------------------------------------------
+           THEME SWITCHER LOGIC (The "ULTRATHINK" Magic)
+           We override variables based on parent class
+           ------------------------------------------------------------ */
+
+        /* 1. NEO-BRUTALISM */
+        body.theme-neobrutal {
+            --bg-body: #ff90e8;
+            --bg-nav: #ffffff;
+            --text-main: #000000;
+            --text-muted: #333;
+            --border: 4px solid #000000;
+            --font-display: 'Arial Black', sans-serif;
+            --font-body: 'Courier New', monospace;
+            --radius: 0px;
+            --shadow: 12px 12px 0px 0px #000;
+        }
+        body.theme-neobrutal .preview-card { background: #fff; padding: 20px; }
+        body.theme-neobrutal .preview-title { text-transform: uppercase; font-size: 7rem; }
+        body.theme-neobrutal .preview-cta {
+            background: #ffdd00;
+            box-shadow: 6px 6px 0 #000;
+            transform: translate(-2px, -2px);
+        }
+        body.theme-neobrutal .preview-cta:hover { transform: translate(0, 0); box-shadow: 0 0 0 #000; }
+
+        /* 2. LIQUID GLASS */
+        body.theme-glass {
+            --bg-body: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            --bg-nav: rgba(255, 255, 255, 0.2);
+            --border: 1px solid rgba(255, 255, 255, 0.4);
+            --font-display: 'Segoe UI', sans-serif;
+            --radius: 24px;
+            --shadow: 0 20px 40px rgba(0,0,0,0.1);
+            --text-main: #2d3436;
+        }
+        body.theme-glass .nav-rail { backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.5); }
+        body.theme-glass .preview-card {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        body.theme-glass .preview-title {
+            background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* 3. CYBER GRUNGE */
+        body.theme-cyber {
+            --bg-body: #050505;
+            --bg-nav: #111;
+            --text-main: #0f0;
+            --text-muted: #008800;
+            --border: 1px solid #00ff00;
+            --font-display: 'Courier New', monospace;
+            --radius: 0px;
+        }
+        body.theme-cyber .preview-card {
+            background: repeating-linear-gradient(0deg, transparent, transparent 1px, #00ff0055 1px, #00ff0055 2px);
+            border: 2px solid #0f0;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+            text-shadow: 0 0 5px #0f0;
+        }
+        body.theme-cyber .preview-title { animation: glitch 0.3s infinite; color: #fff; -webkit-text-stroke: 1px #0f0; }
+
+        /* 4. SWISS STYLE */
+        body.theme-swiss {
+            --bg-body: #ff3b30;
+            --bg-nav: #ffffff;
+            --text-main: #ffffff;
+            --text-muted: rgba(255,255,255,0.8);
+            --border: none;
+            --font-display: 'Helvetica Neue', sans-serif;
+        }
+        body.theme-swiss .nav-rail { border-right: 10px solid #fff; }
+        body.theme-swiss .preview-card { background: transparent; border: none; text-align: left; padding-left: 0; }
+        body.theme-swiss .preview-title { font-size: 12vw; line-height: 0.8; margin-left: -5vw; }
+        body.theme-swiss .preview-desc { text-align: left; border-left: 10px solid #fff; padding-left: 20px; }
+
+        /* 5. MEMPHIS */
+        body.theme-memphis {
+            --bg-body: #fff8e1;
+            --bg-nav: #ffffff;
+            --text-main: #000;
+            --border: 2px dashed #000;
+            --font-display: 'Arial Black', sans-serif;
+            --radius: 0px;
+        }
+        body.theme-memphis .preview-card {
+            background: #fff; border: 3px solid #000; transform: rotate(-2deg);
+            box-shadow: 10px 10px 0 #e0e0e0;
+        }
+        body.theme-memphis .preview-title { font-style: italic; color: #ff4081; text-decoration: underline; }
+        body.theme-memphis .bg-element { content: ''; width: 100px; height: 100px; background: #7c4dff; border-radius: 50%; top: 10%; right: 10%; }
+        body.theme-memphis .bg-element::after { content: ''; position: absolute; width: 0; height: 0; border-left: 50px solid transparent; border-right: 50px solid transparent; border-bottom: 100px solid #00bcd4; bottom: -50px; left: 50px; transform: rotate(45deg); border: 3px solid #000; }
+
+        /* 6. CLAYMORPHISM */
+        body.theme-clay {
+            --bg-body: #e0e5ec;
+            --bg-nav: #e0e5ec;
+            --text-main: #4a5568;
+            --border: none;
+            --font-display: 'Nunito', sans-serif;
+            --radius: 30px;
+            --shadow: 9px 9px 16px rgb(163,177,198,0.6), -9px -9px 16px rgba(255,255,255, 0.5);
+        }
+        body.theme-clay .nav-rail { background: #e0e5ec; border: none; box-shadow: 5px 0 15px rgba(0,0,0,0.05); }
+        body.theme-clay .preview-card {
+            background: #e0e5ec;
+            box-shadow: inset 6px 6px 10px 0 rgba(163,177,198, 0.7), inset -6px -6px 10px 0 rgba(255,255,255, 0.8);
+            border-radius: 40px;
+        }
+        body.theme-clay .menu-item:hover { background: #e0e5ec; box-shadow: 5px 5px 10px rgba(163,177,198,0.5), -5px -5px 10px rgba(255,255,255,0.8); }
+        body.theme-clay .preview-title { color: #667eea; font-weight: 800; }
+
+        /* 7. DARK LUXURY */
+        body.theme-luxury {
+            --bg-body: #0a0a0a;
+            --bg-nav: #111;
+            --text-main: #d4af37; /* Gold */
+            --text-muted: #888;
+            --border: 1px solid #333;
+            --font-display: 'Playfair Display', serif;
+        }
+        body.theme-luxury .preview-card { border: 1px solid #d4af37; background: #0f0f0f; }
+        body.theme-luxury .preview-title { font-style: italic; color: #d4af37; }
+        body.theme-luxury .preview-cta { border: 1px solid #d4af37; color: #d4af37; background: transparent; }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .design-menu { flex-direction: column; }
+            .nav-rail { width: 100%; height: auto; padding: 20px; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: var(--border); }
+            .menu-list { flex-direction: row; width: max-content; }
+            .menu-item { padding: 10px 20px; white-space: nowrap; }
+            .preview-title { font-size: 3rem; }
+            .preview-stage { padding: 30px; }
+        }
+    </style>
+</head>
+<body class="">
+
+    <div class="design-menu">
+        <!-- NAVIGATION RAIL -->
+        <nav class="nav-rail">
+            <div class="menu-header">
+                <h1>Select Style</h1>
+            </div>
+            
+            <div class="menu-list">
+                <button class="menu-item" onclick="setTheme('neobrutal')">
+                    <span>Neo-Brutalism</span>
+                    <span class="arrow">→</span>
+                </button>
+                <button class="menu-item" onclick="setTheme('glass')">
+                    <span>Liquid Glass</span>
+                    <span class="arrow">→</span>
+                </button>
+                <button class="menu-item" onclick="setTheme('cyber')">
+                    <span>Cyber-Grunge</span>
+                    <span class="arrow">→</span>
+                </button>
+                <button class="menu-item" onclick="setTheme('swiss')">
+                    <span>Swiss International</span>
+                    <span class="arrow">→</span>
+                </button>
+                <button class="menu-item" onclick="setTheme('memphis')">
+                    <span>Memphis Design</span>
+                    <span class="arrow">→</span>
+                </button>
+                <button class="menu-item" onclick="setTheme('clay')">
+                    <span>Claymorphism</span>
+                    <span class="arrow">→</span>
+                </button>
+                <button class="menu-item" onclick="setTheme('luxury')">
+                    <span>Dark Luxury</span>
+                    <span class="arrow">→</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- PREVIEW STAGE -->
+        <main class="preview-stage">
+            
+            <!-- Abstract Background Elements (Placeholders that change via CSS) -->
+            <div class="bg-element"></div>
+            
+            <div class="preview-card">
+                <h2 class="preview-title" id="display-title">Select a Design</h2>
+                <p class="preview-desc" id="display-desc">
+                    Explore the palette. Hover over the navigation items to preview the aesthetic in real-time. Click to lock in your selection.
+                </p>
+                <a class="preview-cta">Initialize Protocol</a>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Data Dictionary for Content
+        const styleData = {
+            neobrutal: {
+                title: "RAW & BOLD",
+                desc: "Unapologetic high contrast. Thick black borders, hard drop shadows, and vibrant, clashing colors. A rebellion against minimalism.",
+                cta: "SMASH IT"
+            },
+            glass: {
+                title: "LIQUID ETHEREAL",
+                desc: "Layers of frosted translucency. Blurring the lines between background and foreground using gradients, blur filters, and white noise.",
+                cta: "REFLECT"
+            },
+            cyber: {
+                title: "SYSTEM FAILURE",
+                desc: "Glitch aesthetics and terminal decay. Monospace fonts, chromatic aberration, scanlines, and neon greens evoke a corrupted digital state.",
+                cta: "REBOOT"
+            },
+            swiss: {
+                title: "THE GRID",
+                desc: "Objective, mathematical, clean. Sans-serif typography dominates, flush-left, ragged-right layouts. Typography is the visual.",
+                cta: "ALIGN"
+            },
+            memphis: {
+                title: "BEAUTIFUL CHAOS",
+                desc: "Squiggles, triangles, and pastel clashes. The 80s design movement that broke every rule of grid and good taste in the best way.",
+                cta: "VIBE"
+            },
+            clay: {
+                title: "SOFT SCULPTURE",
+                desc: "Inflated, puffy 3D elements. Soft inner shadows and outer highlights create a tactile, squishy interface experience.",
+                cta: "MOULD"
+            },
+            luxury: {
+                title: "TIMELESS GOLD",
+                desc: "Serif typography, ample whitespace, and restrained color palettes. Authority, exclusivity, and editorial elegance.",
+                cta: "INDULGE"
+            }
+        };
+
+        const body = document.body;
+        const titleEl = document.getElementById('display-title');
+        const descEl = document.getElementById('display-desc');
+        const ctaEl = document.querySelector('.preview-cta');
+        const menuItems = document.querySelectorAll('.menu-item');
+        const previewCard = document.querySelector('.preview-card');
+
+        // Reset Animation helper
+        function triggerAnimation() {
+            previewCard.style.animation = 'none';
+            previewCard.offsetHeight; /* trigger reflow */
+            previewCard.style.animation = 'fadeUp 0.6s forwards';
+        }
+
+        // Theme Setter
+        function setTheme(themeKey) {
+            // 1. Remove all theme classes
+            body.className = ''; 
+            // 2. Add new theme class (with slight delay for transition feel)
+            requestAnimationFrame(() => {
+                body.classList.add(`theme-${themeKey}`);
+            });
+
+            // 3. Update Content with fade
+            triggerAnimation();
+            
+            const data = styleData[themeKey];
+            titleEl.textContent = data.title;
+            descEl.textContent = data.desc;
+            ctaEl.textContent = data.cta;
+
+            // 4. Update Active State in Nav
+            menuItems.forEach(item => {
+                item.classList.remove('active');
+                if(item.getAttribute('onclick').includes(themeKey)) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // Initialize with first item
+        setTheme('neobrutal');
+
+    </script>
+</body>
+</html>
